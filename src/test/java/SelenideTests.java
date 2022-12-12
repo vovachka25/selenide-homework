@@ -31,7 +31,7 @@ public class SelenideTests {
         checkboxes.get(0).click();
         for (SelenideElement checkbox :
                 checkboxes) {
-            Assert.assertEquals(checkbox.getAttribute("type"), "checkbox");
+            checkbox.shouldHave(type("checkbox"));
         }
     }
 
