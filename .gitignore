@@ -1,4 +1,4 @@
 /target
 .idea
 build
-src/main/resources/Reports
+resources/Reports
