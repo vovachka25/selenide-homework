@@ -7,8 +7,7 @@ import org.testng.asserts.SoftAssert;
 
 import java.util.List;
 
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Configuration.*;
 import static com.codeborne.selenide.Selenide.*;
 
@@ -28,25 +27,22 @@ public class SelenideBooksTest {
     public void booksFilterTest(){
         open("");
 
-        List<SelenideElement> javascriptBooksList = $(".books-wrapper")
+        ElementsCollection books = $(".books-wrapper")
                 .$$("[role=\"rowgroup\"]")
-                .stream()
-                .filter(el -> el.$("[role=\"gridcell\"]", 3).getText().equals("O'Reilly Media"))
-                .filter(el -> el.$("[role=\"gridcell\"]",1).getText().toLowerCase().contains("javascript"))
-                .toList();
-        ElementsCollection books = $$(javascriptBooksList);
+                .filterBy(and("criteria", text("O'Reilly Media"), matchText("JavaScript")));
+
         SoftAssert softAssert = new SoftAssert();
         softAssert.assertEquals(books.size(), 10);
-
 
         books
                 .get(0)
                 .$("[role=\"gridcell\"]",1)
                 .shouldHave(text("Learning JavaScript Design Patterns"));
 
-        books
-                .stream()
-                .forEach(el -> {el.$("[role=\"gridcell\"]", 1).$("a").scrollTo().click();back();} );
+        for (int i = 0; i < books.size(); i++) {
+            books.get(i).$("[role=\"gridcell\"]", 1).$("a").scrollTo().click();
+            back();
+        }
 
         softAssert.assertAll();
     }
