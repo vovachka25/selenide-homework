@@ -1,0 +1,70 @@
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.testng.ScreenShooter;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
+
+import java.util.List;
+
+import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Configuration.*;
+import static com.codeborne.selenide.Selenide.*;
+
+public class SelenideBooksTest {
+
+    public SelenideBooksTest(){
+        baseUrl = "https://demoqa.com/books ";
+        WebDriverManager.chromedriver().setup();
+        holdBrowserOpen = false;
+        timeout = 5000;
+        reportsFolder = "resources/Reports";
+        ScreenShooter.captureSuccessfulTests = false;
+        savePageSource = false;
+    }
+
+    @Test
+    public void booksFilterTest(){
+        open("");
+
+        ElementsCollection books = $(".books-wrapper")
+                .$$("[role=\"rowgroup\"]")
+                .filterBy(and("criteria", text("O'Reilly Media"), matchText("JavaScript")));
+
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertEquals(books.size(), 10);
+
+        books
+                .get(0)
+                .$("[role=\"gridcell\"]",1)
+                .shouldHave(text("Learning JavaScript Design Patterns"));
+
+        for (int i = 0; i < books.size(); i++) {
+            books.get(i).$("[role=\"gridcell\"]", 1).$("a").scrollTo().click();
+            back();
+        }
+
+        softAssert.assertAll();
+    }
+
+    @Test
+    public void innerElementTest(){
+        open("");
+        ElementsCollection javascriptBooks = $(".books-wrapper").$$("[role=\"rowgroup\"]");
+        List<SelenideElement> javascriptBooksList = javascriptBooks
+                .stream()
+                .filter(el -> el.$("[role=\"gridcell\"]", 3).getText().equals("O'Reilly Media"))
+                .filter(el -> el.$("[role=\"gridcell\"]",1).getText().toLowerCase().contains("javascript"))
+                .toList();
+
+        List<SelenideElement> eachBook = javascriptBooksList
+                .stream()
+                        .filter(el -> el.lastChild().$(".rt-td", 0).lastChild().getText().equals("img")).toList();
+
+        for (SelenideElement selectedBooks :
+                eachBook) {
+            selectedBooks.$(".rt-td",0).lastChild().shouldHave(attribute("src"));
+        }
+    }
+}
+
